@@ -2,12 +2,20 @@ import os
 import sys
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Table
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy import create_engine
 from eralchemy import render_er
 
 
 Base = declarative_base()
+
+ # Post Guardado
+
+Post_guardado = Table("post_guardado", Base.metadata,
+    Column("id", Integer, primary_key=True),
+    Column("post_id", Integer, ForeignKey("post.id")),
+    Column("usuarios_id", Integer, ForeignKey("usuarios.id")),
+    )
 
 class Usuarios(Base):
     __tablename__ = 'usuarios'
@@ -21,7 +29,6 @@ class Usuarios(Base):
     birth_Name = Column(DateTime, nullable=False)
     post = relationship('Post', backref='usuarios', lazy='true')
     historias = relationship('Historia', backref='usuarios', lazy='true')
-    post_guardado = relationship('Post_guardado', backref='usuarios', lazy='true')
 
 class Post(Base):
     __tablename__ = 'post'
@@ -34,7 +41,7 @@ class Post(Base):
     etiquetas = Column(String(250), nullable=False)
     hashtag = Column(String(250), nullable=False)
     usuario_id = Column(Integer, ForeignKey('usuarios.id'))
-    post_guardado = relationship('Post_guardado', backref='post', lazy='true')
+    posts_guardados = relationship('Usuarios', secondary=Post_guardado, lazy="subquery", backref=backref('post', lazy=True))
 
 class Historia(Base):
     __tablename__ = 'historias'
@@ -47,18 +54,6 @@ class Historia(Base):
     etiquetas = Column(String(250), nullable=False)
     hashtag = Column(String(250), nullable=False)
     usuario_id = Column(Integer, ForeignKey('usuarios.id'))
-    post_guardado = relationship('Post_guardado', backref='historias', lazy='true')
-
-    # Cambio de tablas
-
-    # Post Guardado
-
-Post_guardado = Table("post_guardado", Base.metadata,
-    Column("id", Integer, primary_key=True),
-    Column("post", Integer, ForeignKey("post.id")),
-    Column("usuarios", Integer, ForeignKey("usuarios.id")),
-    Column("historias", Integer, ForeignKey("historias.id"))
-    )
 
 def to_dict(self):
     return {}
